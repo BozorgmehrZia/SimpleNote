@@ -2,6 +2,6 @@
 Mobile Project
 Sharif University of Technology
 
-# Contributers
-## AmirMohammad Aflatoonian
-## Bozorgmehr Zia
+## Contributers
+AmirMohammad Aflatoonian
+Bozorgmehr Zia
