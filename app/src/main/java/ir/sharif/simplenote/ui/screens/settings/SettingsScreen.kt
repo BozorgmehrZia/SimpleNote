@@ -1,4 +1,4 @@
-package ir.sharif.simplenote.ui.screens
+package ir.sharif.simplenote.ui.screens.settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -22,21 +22,28 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ir.sharif.simplenote.R
 import ir.sharif.simplenote.ui.components.AppBar
+import ir.sharif.simplenote.ui.components.ConfirmationDialog
+import ir.sharif.simplenote.ui.navigation.LocalNavController
 
-@Preview(showBackground = true)
 @Composable
 fun SettingsScreen() {
+    val navController = LocalNavController.current
+
+    var showDialog by remember { mutableStateOf(false) }
 
     AppBar("Settings") {
         Column(
@@ -91,7 +98,9 @@ fun SettingsScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* تغییر رمز عبور */ }
+                    .clickable {
+                        navController.navigate("changePassword")
+                    }
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -112,7 +121,7 @@ fun SettingsScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* خروج از حساب */ }
+                    .clickable { showDialog = true }
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -138,6 +147,18 @@ fun SettingsScreen() {
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (showDialog) {
+                ConfirmationDialog(
+                    title = "Log Out",
+                    text = "Are you sure you want to log out from the application?",
+                    onDismiss = { showDialog = false },
+                    onConfirm = {
+                        showDialog = false
+                        // TODO logout
+                        navController.navigate("login")
+                    }
+                )
+            }
         }
     }
 }

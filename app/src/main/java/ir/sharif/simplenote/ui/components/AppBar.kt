@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ir.sharif.simplenote.ui.navigation.LocalNavController
 
 //@Composable
 //fun CenteredAppBar(
@@ -72,6 +73,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AppBar(title: String, content: @Composable (innerPadding: PaddingValues) -> Unit) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val navController = LocalNavController.current
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -92,7 +94,9 @@ fun AppBar(title: String, content: @Composable (innerPadding: PaddingValues) -> 
                         )
                     },
                     navigationIcon = {
-                        BackButton { }
+                        BackButton {
+                            navController.popBackStack()
+                        }
                     },
                     actions = {
                     },

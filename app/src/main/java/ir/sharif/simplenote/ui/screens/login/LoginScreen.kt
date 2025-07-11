@@ -1,4 +1,4 @@
-package ir.sharif.simplenote.ui.screens
+package ir.sharif.simplenote.ui.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,10 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,20 +25,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.sharif.simplenote.ui.components.ForwardButton
 import ir.sharif.simplenote.ui.components.LabeledTextField
+import ir.sharif.simplenote.ui.navigation.LocalNavController
 import ir.sharif.simplenote.ui.theme.Purple
 
 @Composable
-fun LoginScreen(
-    onLoginClick: () -> Unit,
-    onRegisterClick: () -> Unit
-) {
-    var email by remember { mutableStateOf("") }
+fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
+    val navController = LocalNavController.current
+    val uiState by viewModel.uiState.collectAsState()
+
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -57,10 +70,10 @@ fun LoginScreen(
         )
 
         LabeledTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email Address",
-            placeholder = "Example: johndoe@gmail.com"
+            value = username,
+            onValueChange = { username = it },
+            label = "Username",
+            placeholder = "Example: @HamifarTaha"
         )
 
         LabeledTextField(
@@ -76,7 +89,12 @@ fun LoginScreen(
         ForwardButton(
             text = "Login",
             containerColor = Purple,
-            contentColor = Color.White) {}
+            contentColor = Color.White,
+            enabled = !uiState.isLoading,
+            isLoading = uiState.isLoading
+        ) {
+            viewModel.login(username, password)
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -97,18 +115,35 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Register link
-        TextButton(onClick = onRegisterClick, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+        TextButton(
+            onClick = {
+                navController.navigate("register")
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
             Text(
                 "Don’t have any account? Register here",
                 color = Purple,
                 fontSize = 17.sp
             )
         }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    LoginScreen({}) { }
+        if (uiState.errorMessage != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    viewModel.dismissError()
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.dismissError() }
+                    ) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Error") },
+                text = { Text(uiState.errorMessage ?: "") }
+            )
+        }
+
+    }
 }

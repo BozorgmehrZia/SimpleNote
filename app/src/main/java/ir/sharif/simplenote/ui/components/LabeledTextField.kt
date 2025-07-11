@@ -35,7 +35,7 @@ fun LabeledTextField(
         singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = 20.dp),
         shape = RoundedCornerShape(10.dp),
         visualTransformation = visualTransformation,
         colors = OutlinedTextFieldDefaults.colors(
@@ -54,7 +54,10 @@ fun LabeledTextField(
             disabledContainerColor = Color.Transparent,
 
             focusedPlaceholderColor = Color.Gray,
-            unfocusedPlaceholderColor = Color.Gray
+            unfocusedPlaceholderColor = Color.Gray,
+
+            focusedBorderColor = Color.Gray,
+            unfocusedBorderColor = Color.LightGray
         )
     )
 }
