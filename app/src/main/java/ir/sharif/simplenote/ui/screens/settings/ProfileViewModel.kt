@@ -1,10 +1,10 @@
 package ir.sharif.simplenote.ui.screens.settings
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import ir.sharif.simplenote.data.model.Resource
 import ir.sharif.simplenote.data.model.UserInfo
 import ir.sharif.simplenote.data.repository.AuthRepository
@@ -14,27 +14,27 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel(private val authRepository: AuthRepository = AuthRepositoryInstance.authRepository) :
     ViewModel() {
-    var userState by mutableStateOf<Resource<UserInfo>>(Resource.Loading)
-        private set
+    private val _userState = MutableStateFlow<Resource<UserInfo>>(Resource.Loading)
+    val userState: StateFlow<Resource<UserInfo>> = _userState.asStateFlow()
 
     fun loadUser() {
         viewModelScope.launch {
             try {
-                userState = Resource.Loading
+                _userState.value = Resource.Loading
                 val response = authRepository.userInfo()
 
                 if (response.isSuccessful) {
                     val body = response.body()
-                    userState = if (body == null) {
+                    _userState.value = if (body == null) {
                         Resource.Error(parseErrorMessage(response))
                     } else {
                         Resource.Success(body.toUserInfo())
                     }
                 } else {
-                    userState = Resource.Error(parseErrorMessage(response))
+                    _userState.value = Resource.Error(parseErrorMessage(response))
                 }
             } catch (e: Exception) {
-                userState = Resource.Error("Unknown error")
+                _userState.value = Resource.Error("Unknown error")
             }
         }
     }

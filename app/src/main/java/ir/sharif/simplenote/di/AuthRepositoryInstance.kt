@@ -4,6 +4,6 @@ import ir.sharif.simplenote.data.repository.AuthRepository
 
 object AuthRepositoryInstance {
     val authRepository: AuthRepository by lazy {
-        AuthRepository(RetrofitInstance.authService)
+        AuthRepository(RetrofitInstance.authApi)
     }
 }
