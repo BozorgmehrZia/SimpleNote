@@ -1,5 +1,6 @@
 package ir.sharif.simplenote.ui.screens.register
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ir.sharif.simplenote.data.repository.AuthRepository
@@ -10,36 +11,50 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class RegisterViewModel(private val authRepository: AuthRepository = AuthRepositoryInstance.authRepository) : ViewModel() {
+class RegisterViewModel(private val authRepository: AuthRepository = AuthRepositoryInstance.authRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
 
-    fun register(username: String,
-                 email: String,
-                 firstName: String,
-                 lastName: String,
-                 password: String,
-                 passwordRetype: String) {
+    fun register(
+        username: String,
+        email: String,
+        firstName: String,
+        lastName: String,
+        password: String,
+        passwordRetype: String
+    ) {
+        if (password != passwordRetype) {
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                errorMessage = "Passwords mismatch"
+            )
+            return
+        }
+
         _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
         viewModelScope.launch {
-            if (password != passwordRetype) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Passwords mismatch"
-                )
-            }
-            val response = authRepository.register(username, password, email, firstName, lastName)
+            try {
+                val response =
+                    authRepository.register(username, password, email, firstName, lastName)
 
-            if (response.isSuccessful) {
+                if (response.isSuccessful) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isSuccess = true
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = parseErrorMessage(response)
+                    )
+                }
+            } catch (e: Exception) {
+                Log.d("", e.localizedMessage, e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    isSuccess = true
-                )
-            } else {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = parseErrorMessage(response)
+                    errorMessage = "Unknown error"
                 )
             }
         }
