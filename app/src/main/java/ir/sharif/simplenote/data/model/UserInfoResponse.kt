@@ -10,6 +10,6 @@ data class UserInfoResponse(
     @SerializedName("last_name") val lastName: String
 ) {
     fun toUserInfo(): UserInfo {
-        return UserInfo(email, "$firstName $lastName")
+        return UserInfo(email, "$firstName $lastName", username)
     }
 }

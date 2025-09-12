@@ -76,7 +76,7 @@ fun HomeScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { /* TODO: navigate to settings when available */ },
+                        onClick = { navController.navigate("settings") },
                         icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
                         label = { Text("Setting") }
                     )

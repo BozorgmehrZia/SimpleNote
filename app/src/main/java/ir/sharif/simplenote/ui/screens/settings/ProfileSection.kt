@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,20 +30,21 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.sharif.simplenote.R
 import ir.sharif.simplenote.data.model.Resource
+import ir.sharif.simplenote.data.model.UserInfo
 
 @Composable
 fun Profile(viewModel: ProfileViewModel = viewModel()) {
-    val state = viewModel.userState
+    val state by viewModel.userState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadUser()
     }
 
-    when (state) {
+    when (val currentState = state) {
         is Resource.Loading -> {
             Text("Loading...", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
-        is Resource.Success -> {
+        is Resource.Success<UserInfo> -> {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = R.drawable.user_profile),
@@ -53,7 +56,14 @@ fun Profile(viewModel: ProfileViewModel = viewModel()) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(state.data.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(currentState.data.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "@${currentState.data.username}",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -63,7 +73,7 @@ fun Profile(viewModel: ProfileViewModel = viewModel()) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            state.data.name,
+                            currentState.data.email,
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -84,7 +94,7 @@ fun Profile(viewModel: ProfileViewModel = viewModel()) {
                     }
                 },
                 title = { Text("Error") },
-                text = { Text(state.errorMessage) }
+                text = { Text(currentState.errorMessage) }
             )
 
         }

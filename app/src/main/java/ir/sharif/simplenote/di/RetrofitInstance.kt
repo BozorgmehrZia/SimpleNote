@@ -1,7 +1,6 @@
 package ir.sharif.simplenote.di
 
 import android.content.Context
-import ir.sharif.simplenote.data.network.HeaderInterceptor
 import ir.sharif.simplenote.data.services.AuthService
 import ir.sharif.simplenote.data.services.NoteService
 import okhttp3.OkHttpClient
@@ -14,7 +13,19 @@ object RetrofitInstance {
 
     private fun getClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(HeaderInterceptor { TokenManagerInstance.getTokenManager()?.getAccessToken() })
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val requestBuilder = original.newBuilder()
+                    .addHeader("Accept", "application/json")
+                    .header("Content-Type", "application/json")
+                
+                TokenManagerInstance.getTokenManager()?.getAccessToken()?.let { token ->
+                    requestBuilder.header("Authorization", "Bearer $token")
+                }
+                
+                val request = requestBuilder.build()
+                chain.proceed(request)
+            }
             .build()
     }
 
