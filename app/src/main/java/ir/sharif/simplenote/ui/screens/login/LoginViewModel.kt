@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import ir.sharif.simplenote.data.repository.AuthRepository
 import ir.sharif.simplenote.di.AuthRepositoryInstance
 import ir.sharif.simplenote.di.TokenManagerInstance
+import ir.sharif.simplenote.di.NoteRepositoryInstance
 import ir.sharif.simplenote.data.model.UiState
+import ir.sharif.simplenote.data.model.TokenStore
 import ir.sharif.simplenote.util.parseErrorMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +41,37 @@ class LoginViewModel(
                     
                     // Save tokens
                     data?.let { loginResponse ->
-                        TokenManagerInstance.getTokenManager()?.saveTokens(loginResponse.access, loginResponse.refresh)
+                        TokenStore.setFromLoginResponse(loginResponse)
+                        
+                        // Fetch and save user info for offline access
+                        try {
+                            val userInfoResponse = authRepository.userInfo()
+                            if (userInfoResponse.isSuccessful) {
+                                val userInfo = userInfoResponse.body()?.toUserInfo()
+                                userInfo?.let {
+                                    val currentUserId = it.username
+                                    
+                                    // Set current user in NoteRepository
+                                    NoteRepositoryInstance.noteRepository.setCurrentUser(currentUserId)
+                                    Log.d("LoginViewModel", "Current user set to: $currentUserId")
+                                    
+                                    // Save user info
+                                    authRepository.saveUserInfoOffline(it, isSynced = true)
+                                    Log.d("LoginViewModel", "User info saved offline: ${it.name}")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.w("LoginViewModel", "Failed to fetch user info: ${e.message}")
+                            // Continue with login even if user info fetch fails
+                        }
+                        
+                        // Force fresh sync notes after successful login
+                        try {
+                            NoteRepositoryInstance.noteRepository.freshSync()
+                            Log.d("LoginViewModel", "Triggered fresh note sync after login")
+                        } catch (e: Exception) {
+                            Log.w("LoginViewModel", "Failed to sync notes: ${e.message}")
+                        }
                     }
                     
                     _uiState.value = _uiState.value.copy(

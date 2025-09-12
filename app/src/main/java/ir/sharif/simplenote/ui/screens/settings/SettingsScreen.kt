@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -52,19 +56,16 @@ fun SettingsScreen(navController: NavHostController) { // Added navController pa
     var showDialog by remember { mutableStateOf(false) }
     val profileViewModel: ProfileViewModel = viewModel()
     
-    // Load user information when screen is first displayed
-    LaunchedEffect(Unit) {
-        profileViewModel.loadUser()
-    }
-    
     val userState by profileViewModel.userState.collectAsState()
+    val isRefreshing by profileViewModel.isRefreshing.collectAsState()
 
     AppBar("Settings") {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -82,30 +83,57 @@ fun SettingsScreen(navController: NavHostController) { // Added navController pa
                 Column {
                     when (val currentState = userState) {
                         is Resource.Loading -> {
-                            Text("Loading...", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Loading...", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                if (isRefreshing) {
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
                         }
                         is Resource.Success -> {
-                            Text(currentState.data.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "@${currentState.data.username}",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "@${currentState.data.username}",
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Email,
+                                            contentDescription = "Email",
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            currentState.data.email,
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                // Refresh button
                                 Icon(
-                                    imageVector = Icons.Outlined.Email,
-                                    contentDescription = "Email",
-                                    modifier = Modifier.size(16.dp)
+                                    imageVector = Icons.Outlined.Refresh,
+                                    contentDescription = "Refresh",
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clickable { profileViewModel.refreshUser() },
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    currentState.data.email,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (isRefreshing) {
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
                             }
                         }
                         is Resource.Error -> {
@@ -191,7 +219,8 @@ fun SettingsScreen(navController: NavHostController) { // Added navController pa
                     onDismiss = { showDialog = false },
                     onConfirm = {
                         showDialog = false
-                        // TODO logout
+                        // Clear user data and logout
+                        profileViewModel.logout()
                         navController.navigate("login")
                     }
                 )

@@ -53,7 +53,7 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable("changePassword") {
-            ChangePasswordScreen(navController = navController)
+            ChangePasswordScreen()
         }
 
         // Route for new note

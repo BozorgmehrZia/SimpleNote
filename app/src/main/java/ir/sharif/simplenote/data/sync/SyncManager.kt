@@ -43,7 +43,7 @@ class SyncManager(
         }
     }
     
-    private suspend fun uploadLocalChanges() {
+    suspend fun uploadLocalChanges() {
         // Upload notes that need sync
         val notesToSync = noteDao.getNotesNeedingSync()
         Log.d("SyncManager", "Found ${notesToSync.size} notes to sync")
@@ -114,10 +114,25 @@ class SyncManager(
     
     private suspend fun downloadServerChanges() {
         try {
+            Log.d("SyncManager", "Starting download of server changes...")
             val response = noteService.getNotes()
+            Log.d("SyncManager", "Server response code: ${response.code()}")
+            
             if (response.isSuccessful) {
                 val serverNotes = response.body() ?: emptyList()
                 Log.d("SyncManager", "Downloaded ${serverNotes.size} notes from server")
+                
+                // Get existing local notes to preserve unsynced ones
+                val existingNotes = noteDao.getAllNotes().first()
+                val unsyncedNotes = existingNotes.filter { !it.isSynced }
+                Log.d("SyncManager", "Found ${unsyncedNotes.size} unsynced local notes to preserve")
+                
+                // Clear only synced notes (keep unsynced ones)
+                val syncedNotes = existingNotes.filter { it.isSynced }
+                syncedNotes.forEach { note ->
+                    noteDao.deleteNotePermanently(note.id)
+                }
+                Log.d("SyncManager", "Cleared ${syncedNotes.size} synced notes from local database")
                 
                 // Convert server notes to entities and insert them
                 serverNotes.forEach { noteResponse ->
@@ -131,11 +146,21 @@ class SyncManager(
                         isDeleted = false
                     )
                     noteDao.insertNote(noteEntity)
+                    Log.d("SyncManager", "Inserted server note: ${noteResponse.title}")
                 }
-                Log.d("SyncManager", "Updated local database with server notes")
+                
+                // Re-insert unsynced notes to preserve them
+                unsyncedNotes.forEach { note ->
+                    noteDao.insertNote(note)
+                    Log.d("SyncManager", "Preserved unsynced note: ${note.title}")
+                }
+                
+                Log.d("SyncManager", "Updated local database with ${serverNotes.size} server notes and preserved ${unsyncedNotes.size} unsynced notes")
+            } else {
+                Log.e("SyncManager", "Failed to download notes: ${response.code()} - ${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
-            Log.e("SyncManager", "Failed to download server changes: ${e.message}")
+            Log.e("SyncManager", "Failed to download server changes: ${e.message}", e)
         }
     }
     

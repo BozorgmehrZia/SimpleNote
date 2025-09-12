@@ -1,5 +1,6 @@
 package ir.sharif.simplenote.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ir.sharif.simplenote.data.repository.NoteRepository
@@ -16,7 +17,11 @@ class HomeViewModel(
     private val noteRepository: NoteRepository
 ) : ViewModel() {
 
-    val notes: StateFlow<List<Note>> = noteRepository.notes
+    val notes: StateFlow<List<Note>> = noteRepository.getNotesForCurrentUser()
+        .map { notesList ->
+            Log.d("HomeViewModel", "Received ${notesList.size} notes from repository for current user")
+            notesList
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000L),
@@ -73,6 +78,13 @@ class HomeViewModel(
     fun loadNotes() {
         viewModelScope.launch {
             noteRepository.loadNotes()
+        }
+    }
+    
+    fun refreshNotes() {
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "Manual refresh triggered - uploading local changes first")
+            noteRepository.forceUploadAndSync()
         }
     }
 

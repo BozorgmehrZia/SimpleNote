@@ -13,8 +13,8 @@ object NoteRepositoryInstance {
     private var _noteRepository: NoteRepository? = null
     
     fun initialize(context: Context) {
-        val database = SimpleNoteDatabase.getDatabase(context)
-        val noteDao = database.noteDao()
+        DatabaseInstance.initialize(context)
+        val noteDao = DatabaseInstance.noteDao
         val connectivityManager = ConnectivityManager(context)
         val syncManager = SyncManager(
             noteDao = noteDao,

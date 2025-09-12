@@ -56,8 +56,6 @@ fun Profile(viewModel: ProfileViewModel = viewModel()) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(currentState.data.name, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         "@${currentState.data.username}",
                         fontSize = 14.sp,

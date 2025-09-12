@@ -14,7 +14,8 @@ data class NoteEntity(
     val serverId: Int? = null, // ID from Django backend
     val isSynced: Boolean = false, // Whether this note is synced with server
     val needsSync: Boolean = false, // Whether this note needs to be synced
-    val isDeleted: Boolean = false // Whether this note is marked for deletion
+    val isDeleted: Boolean = false, // Whether this note is marked for deletion
+    val userId: String? = null // User who owns this note
 ) {
     fun toNote(): Note {
         return Note(
@@ -26,7 +27,7 @@ data class NoteEntity(
     }
     
     companion object {
-        fun fromNote(note: Note, serverId: Int? = null, isSynced: Boolean = false): NoteEntity {
+        fun fromNote(note: Note, serverId: Int? = null, isSynced: Boolean = false, userId: String? = null): NoteEntity {
             return NoteEntity(
                 id = note.id,
                 title = note.title,
@@ -35,7 +36,8 @@ data class NoteEntity(
                 serverId = serverId,
                 isSynced = isSynced,
                 needsSync = serverId == null, // New notes need sync
-                isDeleted = false
+                isDeleted = false,
+                userId = userId
             )
         }
     }
