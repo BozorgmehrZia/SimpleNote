@@ -25,15 +25,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController // Added
 import ir.sharif.simplenote.ui.components.BackButton
 import ir.sharif.simplenote.ui.components.ForwardButton
 import ir.sharif.simplenote.ui.components.LabeledTextField
-import ir.sharif.simplenote.ui.navigation.LocalNavController
+// import ir.sharif.simplenote.ui.navigation.LocalNavController // Removed
 import ir.sharif.simplenote.ui.theme.Purple
 
 @Composable
-fun RegisterScreen(viewModel: RegisterViewModel = viewModel()) {
-    val navController = LocalNavController.current
+fun RegisterScreen(navController: NavHostController, viewModel: RegisterViewModel = viewModel()) { // Added navController parameter
+    // val navController = LocalNavController.current // Removed
 
     val uiState by viewModel.uiState.collectAsState()
 

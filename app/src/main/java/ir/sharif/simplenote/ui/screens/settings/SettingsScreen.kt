@@ -34,14 +34,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import ir.sharif.simplenote.R
 import ir.sharif.simplenote.ui.components.AppBar
 import ir.sharif.simplenote.ui.components.ConfirmationDialog
-import ir.sharif.simplenote.ui.navigation.LocalNavController
+// import ir.sharif.simplenote.ui.navigation.LocalNavController // Removed
 
 @Composable
-fun SettingsScreen() {
-    val navController = LocalNavController.current
+fun SettingsScreen(navController: NavHostController) { // Added navController parameter
+    // val navController = LocalNavController.current // Removed
 
     var showDialog by remember { mutableStateOf(false) }
 

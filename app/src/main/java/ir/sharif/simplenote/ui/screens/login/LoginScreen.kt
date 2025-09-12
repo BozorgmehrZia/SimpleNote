@@ -1,6 +1,7 @@
 package ir.sharif.simplenote.ui.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ import ir.sharif.simplenote.ui.theme.Purple
 @Composable
 fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
     val navController = LocalNavController.current
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
     var username by remember { mutableStateOf("") }
